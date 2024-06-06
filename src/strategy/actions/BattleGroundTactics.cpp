@@ -2607,6 +2607,13 @@ bool BGTactics::Execute(Event event)
     if (bg->GetStatus() == STATUS_WAIT_LEAVE)
         return false;
 
+    // Prevent doing bg actions in arena, this stops (The variable 'vFlagIds' is being used without being initialized.) crash from happening
+    if (bot->GetBattleground()->isArena())
+    {
+        botAI->ResetStrategies();
+        return false;
+    }
+
     if (bg->GetStatus() == STATUS_IN_PROGRESS)
         botAI->ChangeStrategy("-buff", BOT_STATE_NON_COMBAT);
 
