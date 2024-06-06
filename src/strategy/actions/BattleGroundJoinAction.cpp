@@ -1058,7 +1058,7 @@ bool BGStatusAction::Execute(Event event)
 
             if (ginfo.IsInvitedToBGInstanceGUID)
             {
-                Battleground* bg = sBattlegroundMgr->GetBattleground(ginfo.IsInvitedToBGInstanceGUID, _bgTypeId);
+                Battleground* bg = sBattlegroundMgr->GetBattleground(ginfo.IsInvitedToBGInstanceGUID, _bgTypeId == BATTLEGROUND_AA ? BATTLEGROUND_TYPE_NONE : _bgTypeId);
                 if (!bg)
                 {
                     LOG_ERROR("playerbots", "Bot {} {}:{} <{}>: Missing QueueInfo for {} {}",
