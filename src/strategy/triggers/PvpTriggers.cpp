@@ -63,6 +63,16 @@ bool BgActiveTrigger::IsActive()
     return false;
 }
 
+bool BgEndedTrigger::IsActive()
+{
+    if (bot->InBattleground())
+    {
+        if (bot->GetBattleground() && bot->GetBattleground()->GetStatus() == STATUS_WAIT_LEAVE)
+            return true;
+    }
+    return false;
+}
+
 bool BgInviteActiveTrigger::IsActive()
 {
     if (bot->InBattleground() || !bot->InBattlegroundQueue())

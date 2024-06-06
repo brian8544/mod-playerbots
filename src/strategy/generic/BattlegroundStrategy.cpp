@@ -44,6 +44,7 @@ void BattlegroundStrategy::InitTriggers(std::vector<TriggerNode*> &triggers)
     triggers.push_back(new TriggerNode("bg waiting", NextAction::array(0, new NextAction("bg move to start", 1.0f), nullptr)));
     triggers.push_back(new TriggerNode("bg active", NextAction::array(0, new NextAction("bg move to objective", 1.0f), nullptr)));
     triggers.push_back(new TriggerNode("often", NextAction::array(0, new NextAction("bg check objective", 10.0f), nullptr)));
+    triggers.push_back(new TriggerNode("bg ended", NextAction::array(0, new NextAction("bg leave", 20.0f), nullptr)));
     //triggers.push_back(new TriggerNode("enemy flagcarrier near", NextAction::array(0, new NextAction("attack enemy flag carrier", 80.0f), nullptr)));
     //triggers.push_back(new TriggerNode("team flagcarrier near", NextAction::array(0, new NextAction("bg protect fc", 40.0f), nullptr)));
     //triggers.push_back(new TriggerNode("player has flag", NextAction::array(0, new NextAction("bg move to objective", 90.0f), nullptr)));

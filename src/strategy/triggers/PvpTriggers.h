@@ -89,6 +89,15 @@ class BgActiveTrigger : public Trigger
         bool IsActive() override;
 };
 
+class BgEndedTrigger : public Trigger
+{
+public:
+    BgEndedTrigger(PlayerbotAI* botAI) : Trigger(botAI, "bg ended", 10) {}
+
+public:
+    bool IsActive() override;
+};
+
 class BgInviteActiveTrigger : public Trigger
 {
     public:
