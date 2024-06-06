@@ -1141,6 +1141,10 @@ void PlayerbotAI::DoNextAction(bool min)
         }
     }
 
+    // fix bots not having proper strats
+    if ((bot->InBattleground() && !bot->InArena() && !HasStrategy("battleground", BOT_STATE_NON_COMBAT)) || (bot->InArena() && !HasStrategy("arena", BOT_STATE_NON_COMBAT)))
+        ResetStrategies();
+
     if (master && master->IsInWorld())
     {
         if (master->m_movementInfo.HasMovementFlag(MOVEMENTFLAG_WALKING) && sServerFacade->GetDistance2d(bot, master) < 20.0f)
