@@ -47,7 +47,10 @@ bool BGJoinAction::Execute(Event event)
                 isRated = true;
 
             if (isRated && !gatherArenaTeam(type))
+            {
+                LOG_ERROR("playerbots", "Team {} {}, captain {} <{}>: error making arena group!", uint32(type), uint32(type), bot->GetGUID().ToString().c_str(), bot->GetName());
                 return false;
+            }
 
             botAI->GetAiObjectContext()->GetValue<uint32>("arena type")->Set(isRated);
         }
@@ -83,7 +86,10 @@ bool BGJoinAction::gatherArenaTeam(ArenaType type)
     }
 
     if (!arenateam)
+    {
+        LOG_ERROR("playerbots", "Bot {} <{}>: No proper arena team found!", bot->GetGUID().ToString().c_str(), bot->GetName().c_str());
         return false;
+    }
 
     GuidVector members;
 
@@ -250,30 +256,13 @@ bool BGJoinAction::shouldJoinBg(BattlegroundQueueTypeId queueTypeId, Battlegroun
     bool hasBots = (sRandomPlayerbotMgr->BgBots[queueTypeId][bracketId][TEAM_ALLIANCE] + sRandomPlayerbotMgr->BgBots[queueTypeId][bracketId][TEAM_HORDE]) >= bg->GetMinPlayersPerTeam();
     
     if (!sPlayerbotAIConfig->randomBotAutoJoinBG && !hasPlayers)
-    {
         return false;
 
-        if (sPlayerbotAIConfig->enablePrototypePerformanceDiff)
-        {
-            if (!noLag)
-            {
-                return false;
-            }
-        }
-    }
-    
-    if (!hasPlayers && !(isArena)) 
-    {
+    if (sPlayerbotAIConfig->enablePrototypePerformanceDiff && !noLag)
         return false;
 
-        if (sPlayerbotAIConfig->enablePrototypePerformanceDiff) 
-        {
-            if (!noLag) 
-            {
-                return false;
-            }
-        }
-    }
+    if (!hasPlayers && !(isArena))
+        return false;
 
     uint32 BracketSize = bg->GetMaxPlayersPerTeam() * 2;
     uint32 TeamSize = bg->GetMaxPlayersPerTeam();
@@ -581,6 +570,8 @@ bool BGJoinAction::JoinQueue(uint32 type)
         sRandomPlayerbotMgr->BgBots[queueTypeId][bracketId][teamId] += bot->GetGroup()->GetMembersCount();
 
     botAI->GetAiObjectContext()->GetValue<uint32>("bg type")->Set(0);
+
+    LOG_INFO("playerbots", "Bot {} {}:{} <{}> queued {} {}", bot->GetGUID().ToString().c_str(), bot->GetTeamId() == ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName(), _bgType.c_str(), isRated ? "Rated Arena" : isArena ? "Arena" : "");
 
     if (!isArena)
     {
