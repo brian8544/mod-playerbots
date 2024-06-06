@@ -339,9 +339,6 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
 
     if (sPlayerbotAIConfig->enablePrototypePerformanceDiff)
     {
-		LOG_INFO("playerbots", "---------------------------------------");
-		LOG_INFO("playerbots", "PROTOTYPE: Playerbot performance enhancements are active. Issues and instability may occur.");
-		LOG_INFO("playerbots", "---------------------------------------");
         ScaleBotActivity();
     }
 
