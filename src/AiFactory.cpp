@@ -264,7 +264,11 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
 
     if (!player->InBattleground())
     {
-        engine->addStrategies("racials", "chat", "default", "cast time", "duel", "boost", nullptr);
+        engine->addStrategies("racials", "chat", "default", "aoe", "potions", "conserve mana", "cast time", "pvp", nullptr);
+    }
+    if (!player->InArena())
+    {
+        engine->addStrategies("arena", nullptr);
     }
     if (sPlayerbotAIConfig->autoSaveMana) 
     {

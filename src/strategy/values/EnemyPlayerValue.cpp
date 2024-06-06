@@ -8,14 +8,28 @@
 
 bool NearestEnemyPlayersValue::AcceptUnit(Unit* unit)
 {
+    // Check if the bot is currently in a vehicle
     bool inCannon = botAI->IsInVehicle(false, true);
-    Player* enemy = dynamic_cast<Player*>(unit);
-    if (enemy && botAI->IsOpposing(enemy) && enemy->IsPvP() && !sPlayerbotAIConfig->IsPvpProhibited(enemy->GetZoneId(), enemy->GetAreaId()) &&
-        !enemy->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NON_ATTACKABLE_2) && ((inCannon || !enemy->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))) &&
-        /*!enemy->HasStealthAura() && !enemy->HasInvisibilityAura()*/ enemy->CanSeeOrDetect(bot) && !(enemy->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION)))
-        return true;
 
-    return false;
+    // Attempt to cast the unit to a Player type
+    Player* enemy = dynamic_cast<Player*>(unit);
+
+    // Verify if the cast was successful and perform additional checks
+    if (enemy &&                               // Check if the unit is indeed a Player
+        (botAI->IsOpposing(enemy) ||           // Check if the enemy is on the opposing faction
+            (bot->InArena() && enemy->InArena() && bot->GetTeamId() != enemy->GetTeamId())) &&  // Additional check for arena and team
+        enemy->IsPvP() &&                      // Check if the enemy is flagged for PvP
+        !sPlayerbotAIConfig->IsPvpProhibited(enemy->GetZoneId(), enemy->GetAreaId()) &&  // Check if PvP is allowed in the current zone/area
+        !enemy->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_NON_ATTACKABLE_2) &&  // Check if the enemy is attackable
+        ((inCannon || !enemy->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))) &&   // Check if the enemy is selectable or if the bot is in a vehicle
+        // Additional checks (commented out) for stealth and invisibility are omitted for simplicity
+        enemy->CanSeeOrDetect(bot) &&           // Check if the enemy can see or detect the bot
+        !(enemy->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION)))  // Check if the enemy does not have the Spirit of Redemption aura
+    {
+        return true;  // All conditions are met, accept the unit as an enemy
+    }
+
+    return false;  // Conditions are not met, do not accept the unit as an enemy
 }
 
 Unit* EnemyPlayerValue::Calculate()

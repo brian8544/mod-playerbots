@@ -318,10 +318,8 @@ void PlayerbotAI::UpdateAI(uint32 elapsed, bool minimal)
     if (bot && !inCombat)
         min = true;
 
-    if (HasRealPlayerMaster())
+    if (bot && HasRealPlayerMaster())
         min = false;
-
-
 
     YieldThread(min);
 }
@@ -1140,6 +1138,10 @@ void PlayerbotAI::DoNextAction(bool min)
                 botAI->TellMaster(!urand(0, 2) ? "Hello!" : "Hi!");
         }
     }
+
+    // fix bots in BG not having proper strats
+    if ((bot->InBattleground() && !bot->InArena() && !HasStrategy("battleground", BOT_STATE_NON_COMBAT)) || (bot->InArena() && !HasStrategy("arena", BOT_STATE_NON_COMBAT)))
+        ResetStrategies();
 
     if (master && master->IsInWorld())
     {

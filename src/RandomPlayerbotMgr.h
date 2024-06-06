@@ -163,6 +163,7 @@ class RandomPlayerbotMgr : public PlayerbotHolder
         std::map<TeamId, std::map<BattlegroundTypeId, std::vector<uint32>>> BattleMastersCache;
         std::map<uint32, std::map<std::string, CachedEvent>> eventCache;
         std::list<uint32> currentBots;
+        std::list<uint32> arenaTeamMembers;
         uint32 bgBotsCount;
         uint32 playersLevel;
         PerformanceMonitorOperation* totalPmo;

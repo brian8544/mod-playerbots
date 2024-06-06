@@ -2603,15 +2603,24 @@ bool BGTactics::Execute(Event event)
         botAI->ResetStrategies();
         return false;
     }
-
+        
     if (bg->GetStatus() == STATUS_WAIT_LEAVE)
         return false;
 
+    // Prevent doing bg actions in arena, this stops (The variable 'vFlagIds' is being used without being initialized.) crash from happening
+    if (bot->GetBattleground()->isArena())
+    {
+        botAI->ResetStrategies();
+        return false;
+    }
+
+    // Disable buffing during BG to save mana
     if (bg->GetStatus() == STATUS_IN_PROGRESS)
         botAI->ChangeStrategy("-buff", BOT_STATE_NON_COMBAT);
 
     std::vector<BattleBotPath*> const* vPaths;
     std::vector<uint32> const* vFlagIds;
+
     BattlegroundTypeId bgType = bg->GetBgTypeID();
     if (bgType == BATTLEGROUND_RB)
         bgType = bot->GetBattleground()->GetBgTypeID(true);
@@ -4849,12 +4858,9 @@ bool ArenaTactics::Execute(Event event)
         return false;
     }
 
-    if (bot->isMoving())
-        return false;
-
     Battleground* bg = bot->GetBattleground();
     if (!bg)
-        return false;
+        return false;   
 
     // startup phase
     if (bg->GetStartDelayTime() > 0)
@@ -4880,11 +4886,6 @@ bool ArenaTactics::Execute(Event event)
 
 bool ArenaTactics::moveToCenter(Battleground* bg)
 {
-    // Sanity check
-    if (!bg)
-    {
-        return true;
-    }
     uint32 Preference = context->GetValue<uint32>("bg role")->Get();
     switch (bg->GetBgTypeID())
     {

@@ -558,8 +558,7 @@ void RandomPlayerbotFactory::CreateRandomArenaTeams()
             Field* fields = result->Fetch();
             uint32 bot = fields[0].Get<uint32>();
             randomBots.push_back(bot);
-        }
-        while (result->NextRow());
+        } while (result->NextRow());
     }
 
     if (sPlayerbotAIConfig->deleteRandomBotArenaTeams)
@@ -579,6 +578,11 @@ void RandomPlayerbotFactory::CreateRandomArenaTeams()
     }
 
     uint32 arenaTeamNumber = 0;
+    std::map<uint32, uint32> teamsNumber;
+    std::map<uint32, uint32> maxTeamsNumber;
+    maxTeamsNumber[ARENA_TYPE_2v2] = (uint32)(sPlayerbotAIConfig->randomBotArenaTeamCount * 0.8f);
+    maxTeamsNumber[ARENA_TYPE_3v3] = (uint32)(sPlayerbotAIConfig->randomBotArenaTeamCount * 0.1f);
+    maxTeamsNumber[ARENA_TYPE_5v5] = (uint32)(sPlayerbotAIConfig->randomBotArenaTeamCount * 0.1f);
     GuidVector availableCaptains;
     for (std::vector<uint32>::iterator i = randomBots.begin(); i != randomBots.end(); ++i)
     {
@@ -586,8 +590,28 @@ void RandomPlayerbotFactory::CreateRandomArenaTeams()
         ArenaTeam* arenateam = sArenaTeamMgr->GetArenaTeamByCaptain(captain);
         if (arenateam)
         {
-            ++arenaTeamNumber;
+            teamsNumber[arenateam->GetType()]++;
             sPlayerbotAIConfig->randomBotArenaTeams.push_back(arenateam->GetId());
+        }
+        Player* player = ObjectAccessor::FindConnectedPlayer(captain);
+        if (player)
+        {
+            if (player->GetLevel() < 70)
+                continue;
+
+            uint8 slot = ArenaTeam::GetSlotByType(ArenaType(ARENA_TYPE_2v2));
+            if (player->GetArenaTeamId(slot))
+                continue;
+
+            slot = ArenaTeam::GetSlotByType(ArenaType(ARENA_TYPE_3v3));
+            if (player->GetArenaTeamId(slot))
+                continue;
+
+            slot = ArenaTeam::GetSlotByType(ArenaType(ARENA_TYPE_5v5));
+            if (player->GetArenaTeamId(slot))
+                continue;
+
+            availableCaptains.push_back(captain);
         }
         else
         {
@@ -598,8 +622,26 @@ void RandomPlayerbotFactory::CreateRandomArenaTeams()
         }
     }
 
+    uint32 attempts = 0;
     for (; arenaTeamNumber < sPlayerbotAIConfig->randomBotArenaTeamCount; ++arenaTeamNumber)
     {
+        if (attempts > sPlayerbotAIConfig->randomBotArenaTeamCount)
+            break;
+
+        ArenaType randomType = ARENA_TYPE_2v2;
+        switch (urand(0, 2))
+        {
+        case 0:
+            randomType = ARENA_TYPE_2v2;
+            break;
+        case 1:
+            randomType = ARENA_TYPE_3v3;
+            break;
+        case 2:
+            randomType = ARENA_TYPE_5v5;
+            break;
+        }
+
         std::string const arenaTeamName = CreateRandomArenaTeamName();
         if (arenaTeamName.empty())
             continue;
@@ -635,19 +677,34 @@ void RandomPlayerbotFactory::CreateRandomArenaTeams()
         Field* fields = results->Fetch();
         uint8 slot = fields[0].Get<uint8>();
 
-        ArenaType type;
+        std::string arenaTypeName;
+        ArenaType type = ARENA_TYPE_2v2;
         switch (slot)
         {
             case 2:
                 type = ARENA_TYPE_2v2;
+                arenaTypeName = "2v2";
                 break;
             case 3:
                 type = ARENA_TYPE_3v3;
+                arenaTypeName = "3v3";
                 break;
             case 5:
                 type = ARENA_TYPE_5v5;
+                arenaTypeName = "5v5";
                 break;
         }
+
+        attempts++;
+
+        if (type != randomType)
+            continue;
+
+        if (teamsNumber[type] >= maxTeamsNumber[type])
+            continue;
+
+        if (player->GetArenaTeamId(ArenaTeam::GetSlotByType(type)))
+            continue;
 
         ArenaTeam* arenateam = new ArenaTeam();
         if (!arenateam->Create(player->GetGUID(), type, arenaTeamName, 0, 0, 0, 0, 0))
@@ -655,29 +712,51 @@ void RandomPlayerbotFactory::CreateRandomArenaTeams()
             LOG_ERROR("playerbots", "Error creating arena team {}", arenaTeamName.c_str());
             continue;
         }
-
         arenateam->SetCaptain(player->GetGUID());
-
-        // set random rating
-        arenateam->SetRatingForAll(urand(1500, 2700));
-
         // set random emblem
-        uint32 backgroundColor = urand(0xFF000000, 0xFFFFFFFF);
-        uint32 emblemStyle = urand(0, 101);
-        uint32 emblemColor = urand(0xFF000000, 0xFFFFFFFF);
-        uint32 borderStyle = urand(0, 5);
-        uint32 borderColor = urand(0xFF000000, 0xFFFFFFFF);
+        uint32 backgroundColor = urand(0xFF000000, 0xFFFFFFFF), emblemStyle = urand(0, 101), emblemColor = urand(0xFF000000, 0xFFFFFFFF), borderStyle = urand(0, 5), borderColor = urand(0xFF000000, 0xFFFFFFFF);
         arenateam->SetEmblem(backgroundColor, emblemStyle, emblemColor, borderStyle, borderColor);
-
         // set random kills (wip)
         //arenateam->SetStats(STAT_TYPE_GAMES_WEEK, urand(0, 30));
         //arenateam->SetStats(STAT_TYPE_WINS_WEEK, urand(0, arenateam->GetStats().games_week));
         //arenateam->SetStats(STAT_TYPE_GAMES_SEASON, urand(arenateam->GetStats().games_week, arenateam->GetStats().games_week * 5));
         //arenateam->SetStats(STAT_TYPE_WINS_SEASON, urand(arenateam->GetStats().wins_week, arenateam->GetStats().games
-        arenateam->SaveToDB();
-
         sArenaTeamMgr->AddArenaTeam(arenateam);
         sPlayerbotAIConfig->randomBotArenaTeams.push_back(arenateam->GetId());
+
+        for (uint32 i = 0; i < 10; i++)
+        {
+            if (arenateam->GetMembersSize() >= type)
+                break;
+
+            ObjectGuid possibleMember = availableCaptains[index];
+            if (possibleMember == captain)
+                continue;
+
+            Player* member = ObjectAccessor::FindPlayer(possibleMember);
+            if (!member)
+                continue;
+            if (member->GetArenaTeamId(arenateam->GetSlot()))
+                continue;
+            if (member->GetTeamId() != player->GetTeamId())
+                continue;
+
+            arenateam->AddMember(member->GetGUID());
+            LOG_INFO("playerbots", "Bot {} {}:{} <{}>: added to random Arena {} team - {}", member->GetGUID().ToString().c_str(), member->GetTeamId() == ALLIANCE ? "A" : "H", member->GetLevel(), member->GetName().c_str(), ArenaType(type), arenateam->GetName().c_str());
+        }
+
+        if (arenateam->GetMembersSize() < type)
+        {
+            LOG_ERROR("playerbots", "Random Arena team{} {}: failed to get enough members, deleting...", ArenaType(type), arenateam->GetName().c_str());
+            arenateam->Disband(nullptr);
+            return;
+        }
+
+        // set random rating
+        arenateam->SetRatingForAll(urand(1500, 2700));
+        arenateam->SaveToDB();
+
+        LOG_ERROR("playerbots", "Random Arena team {} {}: created", ArenaType(type), arenateam->GetName().c_str());
     }
 
     LOG_INFO("playerbots", "{} random bot arena teams available", arenaTeamNumber);

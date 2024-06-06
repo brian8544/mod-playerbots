@@ -360,14 +360,15 @@ void PlayerbotFactory::Randomize(bool incremental)
     if (pmo)
         pmo->finish();
 
-    // if (bot->getLevel() >= 70)
-    // {
-    //     pmo = sPerformanceMonitor->start(PERF_MON_RNDBOT, "PlayerbotFactory_Arenas");
-    //     LOG_INFO("playerbots", "Initializing arena teams...");
-    //     InitArenaTeam();
-    //     if (pmo)
-    //         pmo->finish();
-    // }
+    if (bot->getLevel() >= 70)
+    {
+        pmo = sPerformanceMonitor->start(PERF_MON_RNDBOT, "PlayerbotFactory_Arenas");
+        LOG_INFO("playerbots", "Initializing arena teams...");
+        if (bot->getLevel() >= 70)
+            InitArenaTeam();
+        if (pmo)
+            pmo->finish();
+    }
 
     if (!incremental) {
         bot->RemovePet(nullptr, PET_SAVE_AS_CURRENT, true);

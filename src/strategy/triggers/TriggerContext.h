@@ -300,6 +300,7 @@ class TriggerContext : public NamedObjectContext<Trigger>
         static Trigger* new_player_nearby(PlayerbotAI* botAI) { return new NewPlayerNearbyTrigger(botAI); }
         static Trigger* bg_waiting(PlayerbotAI* botAI) { return new BgWaitingTrigger(botAI); }
         static Trigger* bg_active(PlayerbotAI* botAI) { return new BgActiveTrigger(botAI); }
+        static Trigger* bg_ended(PlayerbotAI* botAI) { return new BgEndedTrigger(botAI); }
         static Trigger* bg_invite_active(PlayerbotAI* botAI) { return new BgInviteActiveTrigger(botAI); }
         static Trigger* inside_bg(PlayerbotAI* botAI) { return new InsideBGTrigger(botAI); }
         static Trigger* player_has_no_flag(PlayerbotAI* botAI) { return new PlayerHasNoFlag(botAI); }

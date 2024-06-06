@@ -140,8 +140,20 @@ bool AttackersValue::IsPossibleTarget(Unit* attacker, Player* bot, float range)
             isMemberBotGroup = true;
     }
 
-    // bool inCannon = botAI->IsInVehicle(false, true);
-    // bool enemy = botAI->GetAiObjectContext()->GetValue<Unit*>("enemy player target")->Get();
+    bool inCannon = botAI->IsInVehicle(false, true);
+
+    bool enemy = botAI->GetAiObjectContext()->GetValue<Unit*>("enemy player target")->Get();
+
+    bool duel = false;
+    if (attacker && bot->duel && bot->duel->Opponent && attacker->GetGUID() == bot->duel->Opponent->GetGUID())
+        duel = true;
+
+    Player* arenaEnemy = dynamic_cast<Player*>(attacker);
+    if (arenaEnemy)
+    {
+        if (arenaEnemy->InArena() && bot->InArena() && arenaEnemy->GetTeamId() != bot->GetTeamId())
+            duel = true;
+    }
     
     return attacker && 
         attacker->IsInWorld() && 

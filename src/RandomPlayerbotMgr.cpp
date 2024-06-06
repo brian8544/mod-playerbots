@@ -339,9 +339,6 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
 
     if (sPlayerbotAIConfig->enablePrototypePerformanceDiff)
     {
-		LOG_INFO("playerbots", "---------------------------------------");
-		LOG_INFO("playerbots", "PROTOTYPE: Playerbot performance enhancements are active. Issues and instability may occur.");
-		LOG_INFO("playerbots", "---------------------------------------");
         ScaleBotActivity();
     }
 
@@ -381,6 +378,11 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
         if (time(nullptr) > (BgCheckTimer + 30))
             activateCheckBgQueueThread();
     }
+
+    /*
+    if (time(nullptr) > (OfflineGroupBotsTimer + 5) && players.size())
+        AddOfflineGroupBots();
+    */
 
     uint32 updateBots = sPlayerbotAIConfig->randomBotsPerInterval * onlineBotFocus / 100;
     uint32 maxNewBots = onlineBotCount < maxAllowedBotCount ? maxAllowedBotCount - onlineBotCount : 0;
@@ -928,6 +930,19 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
 		}
 
         return false;
+    }
+
+    // load random bot team members
+
+    auto results = CharacterDatabase.Query("SELECT guid FROM arena_team_member");
+    if (results)
+    {
+        do
+        {
+            Field* fields = results->Fetch();
+            uint32 lowguid = uint32(fields[0].Get<uint64>());
+            arenaTeamMembers.push_back(lowguid);
+        } while (results->NextRow());
     }
 
     uint32 isLogginIn = GetEventValue(bot, "login");
