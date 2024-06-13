@@ -122,7 +122,6 @@ botPID::~botPID()
     delete pimpl;
 }
 
-
 /**
  * Implementation
  */
