@@ -371,6 +371,12 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
         if (time(nullptr) > (PlayersCheckTimer + 60))
             activateCheckPlayersThread();
     }
+
+    if (sPlayerbotAIConfig->randomBotJoinLfg/* && !players.empty()*/)
+    {
+        if (time(nullptr) > (LfgCheckTimer + 30))
+            CheckLfgQueue();
+    }
     
     if (sPlayerbotAIConfig->randomBotJoinBG/* && !players.empty()*/)
     {
